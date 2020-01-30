@@ -48,14 +48,14 @@ text(t, 1/a, expression(italic("K") == 1/alpha), adj = c(1,0))
  N <- sapply(a.s, function(a) dlogistic(alpha = a, t = 15))
 #We next plot all populations, and use some fancy code to add some informative text
 #in the right locations.
-matplot(0:t, N, type = "l", ylim = c(0, 1000), lty = 1, lwd = 0.75,
-          + col = 1)
-text(8, 1/min(a.s), bquote(italic(alpha) == .(round(min(a.s),
-                                                      + 3))), adj = c(1, 0.5))
-text(10, 1/max(a.s), bquote(italic(alpha) == .(round(max(a.s),
+matplot(0:t, N, type = "l", ylim = c(0, 1000), lty = 1, lwd = 0.75,col = 1)
+        
+text(8, 1/min(a.s), bquote(italic(alpha) == .(round(min(a.s),3))), adj = c(1, 0.5))
+                                                     
+text(10, 1/max(a.s), bquote(italic(alpha) == .(round(max(a.s),3))), adj = c(0, 1.2))
                                 
                                                      
                                                      
                                                      
                                                      
-                                                                            + 3))), adj = c(0, 1.2))
+                                                                            
