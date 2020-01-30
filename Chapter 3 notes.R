@@ -5,12 +5,12 @@
 #An R function will simplify our explorations. It will return a vector of N, given ,
 #rd, N0, and t. The function arguments can have defaults (e.g., t=10).
 dlogistic <- function(alpha = 0.01, rd = 1, N0 = 2, t = 15) {
-  + N <- c(N0, numeric(t))
-  + for (i in 1:t) N[i + 1] <- {
-    + N[i] + rd * N[i] * (1 - alpha * N[i])
-    + }
-  + return(N)
-  + }
+   N <- c(N0, numeric(t))
+   for (i in 1:t) N[i + 1] <- {
+   N[i] + rd * N[i] * (1 - alpha * N[i])
+    }
+   return(N)
+  }
 
 #Graphing Population Size
 #We can use the function created above, dlogistic, with default settings, to generate
