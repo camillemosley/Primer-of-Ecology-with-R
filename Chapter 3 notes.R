@@ -82,7 +82,132 @@ str(Ns2)
 library(lattice)
 print(xyplot(N ~ time | rd, data = Ns2, type = "l", layout = c(3, 2, 1), col = 1))
 
-                                                     
-                                                     
-                                                     
-                                                                            
+#Bifurcation Plot: Attractors as a Function of rd (Fig. 3.7)
+#Here we perform more comprehensive simulations, and plot the point and periodic
+#attractors vs. rd. First we pick some constraints for the simulation: the number of
+#different rd, the sequence of rd values, and the number of time steps.
+num.rd <- 201; t <- 400
+rd.s <- seq(1, 3, length = num.rd)
+#Next we use sapply for the simulations (If num.rd and t are large, this could take a while).
+ tmp <- sapply(rd.s, function(r) dlogistic(rd = r, N0 = 99,
+                                            + t = t))
+#Next we convert the output to a data frame and stack up the N in one column. We
+#also rename each of the stacked columns, and add new columns for the respective rd
+#and time steps.
+ tmp.s <- stack(as.data.frame(tmp))
+ names(tmp.s) <- c("N", "Old.Column.ID")
+ tmp.s$rd <- rep(rd.s, each = t + 1)
+ tmp.s$time <- rep(0:t, num.rd)
+#We save just the later dynamics in order to focus on the N after they have converged
+#on the periodic attractors. Here we select the last 50% of the time steps. (Your figure
+#will look a little different than Fig. 3.7 because I used more rd and time steps.)
+ N.bif <- subset(tmp.s, time > 0.5 * t)
+ plot(N ~ rd, data = N.bif, pch = ".", xlab = quote("r"["d"]))
+ 
+ #Sensitivity to Intitial Conditions
+ #We start with three populations, all very close in initial abundance. We then propogate
+ #with a rd to generate chaos for 100 time steps.
+N.init <- c(97, 98, 99); t <- 30
+Ns <- sapply(N.init, function(n0) dlogistic(rd = 2.7, N0 = n0,
+                                               + t = t))
+#Now we would like to graph them over the first 12 times, and look at the correlations
+#between N1 and the other two populations.
+  matplot(0:t, Ns, type = "l", col = 1)
+  
+#Density Dependence on Birth and Death Rates (Figs. 3.9a, 3.9b)
+ # To make expressions for eqs. 4.24, 4.17, use expression.
+ B.N <- expression(-a * N^2 + e * N - f)
+ D.N <- expression(g * N^2)
+ #We then provides constants and evaluate the expressions to plot the density dependence
+  #on birth and death rates.
+  a <- 1/1600; e <- 80 * a; f <- 0.2; g <- 4e-05; N <- 0:100
+  plot(N, eval(B.N), type = "l", ylab = "B(N), D(N)")
+  lines(N, eval(D.N), lty = 2)
+  abline(h = 0, lty = 3)
+  legend("bottom", c("Effect on Birth Rate", "Effect on Death Rate"),
+         lty = 1:2, bty = "n")
+  #The sum of these two rates is merely density dependence,
+plot(N, eval(B.N) + eval(D.N), type = "l", ylim = c(-0.4, 1), ylab = "Net Density Dependence, F(N)")
+abline(h = 0, lty = 3)
+# we can compare this to linear density dependence of the logistic model (1???vN).
+ #If v = 0.01, we have
+ curve(1 - 0.01 * x, 0, 100, lty = 2, add = T)
+ legend("topright", c("Generalized", "Logistic"), lty = 1:2, bty = "n")
+ 
+#Growth rate vs. N
+ #We first define an expression, and constants.
+ pop.growth.rate <- expression(r * N * (1 - alpha * N))
+r <- 1; alpha <- 0.01; N <- 0:120
+# A basic plot.
+  plot(N, eval(pop.growth.rate), type = "l", ylab = "Population Growth Rate (dN/dt)", xlab = "N")
+  abline(h = 0); legend("topright", "r=1", lty = 1)
+# Add a few points with labels,
+ N <- c(0, 10, 50, 100, 115)
+  points(N, eval(pop.growth.rate), cex = 1.5)
+  text(N, eval(pop.growth.rate), letters[1:5], adj = c(0.5, 2))
+# add arrows for the direction of change in N.
+ arrows(20, 2, 80, 2, length = 0.1, lwd = 3)
+ arrows(122, -2, 109, -2, length = 0.1, lwd = 3)
+ 
+#Symbolic differentiation
+#We can use R's minimal symbolic capabilities to get derivatives. Here we get the
+#partial derivative and evaluate for the two equilibria (Fig. 3.10).
+  dF.dN <- deriv(pop.growth.rate, "N")
+  N <- c(0, 1/alpha)
+  eval(dF.dN)
+  attr(,"gradient")
+ N
+
+#Function for an ODE
+# Making a function to use with R's ODE solver is pretty easy, provided we follow
+# the rules (see Appendix, secs. , B.10). To make the code transparent, I translate the
+# vector parameters and the vector of populations (in this single species model, we
+#                                                  have only one population).
+  clogistic <- function(times, y, parms) {
+     n <- y[1]
+     r <- parms[1]
+     alpha <- parms[2]
+     dN.dt <- r * n * (1 - alpha * n)
+     return(list(c(dN.dt)))
+     }
+# We create vectors for the parameters and the initial densities for all of the populations
+ #in the model. We also specify the time.
+ prms <- c(r = 1, alpha = 0.01); init.N <- c(1); t.s <- seq(0.1,10, by = 0.1)
+#We load the deSolve library, and run ode. The output is a matrix that includes the
+ #time steps and the N (Fig. 3.12a).
+  library(deSolve)
+  out <- ode(y = init.N, times = t.s, clogistic, parms = prms)
+  plot(out[, 1], out[, 2], type = "l", xlab = "Time", ylab = "N")
+  
+#Plotting Random Populations ( (Fig. 3.12b))
+ #We use the above function to create 20 populations with different traits. We start
+ #with an empty matrix, and then for each of the populations, we draw random N0
+ # and r, run the ODE solver, keeping just the column for N. Last we plot the output.
+   outmat <- matrix(NA, nrow = length(t.s), ncol = 20)
+   for (j in 1:20) outmat[, j] <- {
+      y <- runif(n = 1, min = 0, max = 120)
+      prms <- c(r = runif(1, 0.01, 2), alpha = 0.01)
+      ode(y, times = t.s, clogistic, prms)[, 2]
+      }
+   matplot(t.s, outmat, type = "l", col = 1, ylab = "All Populations")  
+#Theta-logistic function
+#Here we make a function that we can use with ode, the numerical integration function.
+    thetalogistic <- function(times, y, parms) {
+       n <- y[1]
+       with(as.list(parms), {
+          dN.dt <- r * n * (1 - (alpha * n)^theta)
+          return(list(c(dN.dt)))
+          })
+    }
+    
+#Theta-logistic density dependence
+# We first graph theta-logistic, for theta < 1, theta = 1, and theta > 1 (Fig. 3.13a).
+     r <- 0.75; alpha <- 0.01; theta <- c(0.5, 1, 2);
+     N <- 0:110
+     theta.out <- sapply(theta, function(th) {
+        1 - (alpha * N)^th
+        })
+     matplot(N, theta.out, type = "l", col = 1)
+     abline(h = 0)
+     legend("topright", legend = paste("theta =", c(2, 1, 0.5)),lty = 3:1)
+     
