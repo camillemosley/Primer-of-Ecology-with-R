@@ -211,3 +211,46 @@ r <- 1; alpha <- 0.01; N <- 0:120
      abline(h = 0)
      legend("topright", legend = paste("theta =", c(2, 1, 0.5)),lty = 3:1)
      
+#Theta-logistic growth rate
+#We plot the growth rate (a.k.a. the production function) for the theta-logistic model
+#with theta < 1, theta = 1, and theta > 1 (Fig. 3.13b).
+      thetaGR.out <- sapply(theta, function(th) {
+         r * N * (1 - (alpha * N)^th)
+         })
+      matplot(N, thetaGR.out, type = "l", col = 1)
+      abline(h = 0)
+      legend("bottomleft", legend = paste("theta =", c(2, 1, 0.5)),lty = 3:1)
+#We also add an example of growth with low theta, but higher r.
+     
+#Theta-logistic dynamics
+#We solve numerically for N, and plot the dynamics for N with theta < 1, theta = 1, and theta > 1
+      prms <- c(r <- 0.75, alpha <- 0.01, theta = 1)
+      thetaN <- sapply(theta, function(th) {
+         prms["theta"] <- th
+         ode(y = 1, t.s, thetalogistic, prms)[, 2]
+         })
+      matplot(t.s, thetaN, type = "l")
+      legend("topleft", legend = paste("theta =", c(2, 1, 0.5)), lty = 3:1, bty = "n")
+      
+ #MSY and harvesting (Fig. 3.14a)
+#Here we illustrate the interaction harvesting at a rate associated with MSY for
+#logistic growth. We set logistic model parameters, and first plot logistic growth
+# without harvest.
+    r <- 0.5; alpha <- 0.01; N <- 0:105
+    plot(N, eval(pop.growth.rate), type = "l", ylim = c(-3, 15), ylab = "dN/dt and FN")
+    abline(h = 0)
+# We then calculate F based on our solution eq. 9.6, and plot the linear harvest function
+# with an intercept of zero, and slope of F.
+    F <- r/2
+    abline(c(0, F), lty = 2)
+#Equilibrium solution for logistic growth with harvesting (Fig. 3.14b)
+#When we add harvesting at rate F = r/2, we get a new equilibrium. Here we illustrate
+#this using the same parameters as above, but now using the entire function with both
+#growth and harvest.
+       pgr.H <- expression(r * N * (1 - alpha * N) - F * N)
+       N <- 0:55
+       plot(N, eval(pgr.H), type = "l", ylab = "dN/dt (growth - harvesting)")
+       abline(h = 0)
+#This merely represents the new equilibrium (where dN/dt crosses the x-axis) with a
+#harvest of rate F = r/2.     
+     
