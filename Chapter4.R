@@ -58,13 +58,22 @@ hanski <- function(t, y, parms) {
      dp <- ci * p * (1 - p) - e * p * (1 - p)
      return(list(dp))
      })
+   
+gotelli2 <- function(t, y, parms) {
+     p <- y[1]
+     with(as.list(parms), {
+       dp <- (ce + ci * p) * (1 - p) - e * p
+       return(list(dp))
+     })
+   }
    }
 
-prms <- c(ci <- 0.15, ce <- 0.15, e = 0.05)
-out.IMH <- data.frame(ode(y = Initial.p, times = 1:100,func = gotelli, parms = prms))
+prms <- c(ci <- 0.05, ce <- 0.05, e = 0.01)
+
+out.IMH <- data.frame(ode(y = Initial.p, times = 1:100,func = gotelli2, parms = prms))
 out.IMH[["pH"]] <- ode(y = Initial.p, times = 1:100, func = hanski,parms = prms)[, 2]
 #plot the results, prop rain and hanski
-matplot(out.IMH[, 1], out.IMH[, 2:3], type = "l", col = 1, ylab = "p", xlab = "time")
+matplot(out.IMH[, 1], type = "l", col = 1, ylab = "p", xlab = "time")
 legend("topleft", c("Hanski", "Propagule Rain"), lty = 2:1,bty = "n")
 
 #calculating equilibrium for the core satellite meta pop model, neg slope = stable equil.
@@ -85,6 +94,15 @@ lande <- function(t, y, parms) {
      return(list(dp))
      })
 }
+
+landeRescue <- function(t, y, parms) {
+  p <- y[1]
+  with(as.list(parms), {
+    dp <- ci * p * (1 - D - p) - (e * p)*(1-A*p)
+    return(list(dp))
+  })
+}
+
 
 #plotting habitat destruction effects
 library(deSolve)
@@ -117,3 +135,45 @@ matplot(t, cbind(C1[, 2], C2[, 2], L2[, 2]), type = "l", ylab = "p", xlab = "Tim
 legend("right", c("c > e", "c < e", "c < e (Levins)"), lty = 1:3, bty = "n")
 
 #questions pdf 142
+#4.1, p= 0.8
+levins <- function(t, y, parms) {
+  p <- y[1]
+  with(as.list(parms), {
+    dp <- ci * p * (1 - p) - e * p
+    return(list(dp))
+  })
+}
+library(deSolve)
+prms <- c(ci = 0.05, e = 0.01)
+Initial.p <- 0.01
+out.L <- data.frame(ode(y = Initial.p, times = 1:500, func = levins,parms = prms))
+#plotting results of metapopulation model, set levins model to 0 solve for p to find equilibrium
+plot(out.L[, 2] ~ out.L[, 1], type = "l", ylim = c(0, 1), ylab = "p", xlab = "time")
+
+pstarlande=1-(e/ci)-ds
+ci=0.1
+e=0.01
+pstarlande
+
+ode(y = 0.999, times = t, func = lande, parms = c(ci = 0.1, e = 0.01))
+
+
+#4.2,?
+prmsA <- c(ci = 0.1, e = 0.02, D = 0.5, A = 0)
+as<- seq(0,1, by=.25)
+Initial.p <- 0.01
+t <- 1:500
+
+ps <- sapply(as, function(a) {
+  prmsA["A"] <- a
+  ode(y = Initial.p, times = t, func = landeRescue, parms = prmsA)[,2]
+})
+
+matplot(t, ps, type = "l", ylab = "p", xlab = "time",)
+text(c(200, 200, 200), ps[200, ], paste("A = ", as, sep = ""), adj = c(1, 0))
+legend("topleft",paste("A = ",as), lty = 1:5, col = 1:5)
+
+
+
+
+
