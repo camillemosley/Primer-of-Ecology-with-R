@@ -52,9 +52,50 @@ theta.out <- sapply(theta, function(th) {
  abline(h = 0)
  legend("bottomleft", legend = paste("theta =", c(2, 1, 0.5)), lty = 3:1)
 
+#3.5
+#a)discrete version of the logistic growth model
+ Kstart = 100
+ time = 1:20
+ K = numeric(20)
+ 
+ for(i in 1:20) {
+   K[i] = Kstart + rnorm(1, m=0, sd=5)
+ }
+ plot(time, K)
+ 
+ dlogistic <- function(K,rd,N0,t) { 
+   N = c(N0, numeric(t))
+   for(i in 1:t) {
+     N[i+1] = N[i] + rd * N[i] * (1 - (1/K[i]) * N[i])
+   }
+   return(N)
+ }
+ 
+ d = dlogistic(K, rd, 1, 20)
+ plot(ylab="growth", xlab="years",0:20,d)
 
+ #b)
+ rd = 1
+ Nsim = 100
+ N_mean = numeric(Nsim)
+ S_D = numeric(Nsim)
+ for (j in 1:Nsim){
+   stdev = sample(seq(0.1,15,0.5),1)
+   S_D[j] = stdev
+   Kstart = 100
+   time = 1:20
+   K = numeric(20)
+   
+   for(i in 1:20) {
+     K[i] = Kstart + rnorm(1, m=0, sd=stdev)
+   }
+   N_mean[j] = mean(dlogistic(K, rd, 1, 20))
+ }
+ 
+ plot(xlab="standard deviation",ylab="Mean",S_D, N_mean)
 
-
+ #c)
+ 
 
 
 

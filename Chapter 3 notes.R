@@ -253,4 +253,6 @@ r <- 1; alpha <- 0.01; N <- 0:120
        abline(h = 0)
 #This merely represents the new equilibrium (where dN/dt crosses the x-axis) with a
 #harvest of rate F = r/2.     
+       
+
      

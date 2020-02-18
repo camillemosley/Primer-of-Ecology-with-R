@@ -3,7 +3,7 @@
 (a) Calculate rd of an annual plant that has a maximum growth rate of Nt+1/Nt =
   2 at very, very small population sizes.
 (b) Calculate the appropriate per capita density dependent effect of an annual
-plant with a carrying capacity K of 100 inds·m???2.
+plant with a carrying capacity K of 100 indsÂ·m???2.
 (c)Write the appropriate logistic growth equation that incorporates the intrinsic
 growth of (a) and the density dependence of (b).
 (d) Graph the 10 y dynamics (t = 0, . . . , 10) of the annual plant in (a) and (b),
@@ -14,7 +14,7 @@ starting with N0 = 1.
 in hours.
 (b) Calculate the per capita density dependent effect of an E. coli culture
 that grows logistically over a 24 h period, and which levels off at a density
-of 107 CFU·mL???1 (CFU is colony forming units - for E. coli its is equivalent
+of 107 CFUÂ·mL???1 (CFU is colony forming units - for E. coli its is equivalent
                  to individuals).
 (c) Graph the 50 h dynamics (t = 0, . . . , 50) of the E. coli population in (a) and
 (b), starting with N0 = 1000.
@@ -67,7 +67,7 @@ with one of the random number generators:
 for(i in 1:20) K[i] <- Kstart + rnorm(1, m=0, sd=5);
 plot(time, K).
 (b) All distributions are characterized by their moments. For instance, the Normal
-distribution is typically defined by its mean, ??, and variance, 2. Focus on
+distribution is typically defined by its mean, ??, and variance, 2. Focus on
 just one moment of your selected distribution in (a), and use your simulations
 Most environments change continually. Temperature, resource availability, changes
 
@@ -75,11 +75,123 @@ Most environments change continually. Temperature, resource availability, change
 to determine quantitatively the relation between K and the resulting N derived
 from the discrete growth model. For instance, you might vary the standard deviation
 of the random normal distribution that contributes to K, and examine
-how the standard deviation of K, K relates to mean N, ??N.
+how the standard deviation of K, K relates to mean N, ??N.
 (c) Create a reddened time series for K.17(Hint: What are the values of x and
 y when you do x <- sample(c(-1,0,1), 20, replace=TRUE); y <- cumsum(x) ?). 
-Use this time series to create a reddened population dynamic. (Hint:
-                                                                                                                     First create the vector of reddened K's equal in length to your time series.
-                                                                                                                   Then create a growth function that can access the vector, e.g. DLG.RK <- function(
-                                                                                                                     alpha=0.001, rd=1, N0=10, gens=20, K=K.red). Then, inside the for
-                                                                                                                   loop, use an indexed K, such as 1-N[t]/K[t].
+Use this time series to create a reddened population dynamic. (Hint: First create the vector of reddened K's equal in length to your time series.
+Then create a growth function that can access the vector, e.g. DLG.RK <- function(alpha=0.001, rd=1, N0=10, gens=20, K=K.red). Then, inside the for
+ loop, use an indexed K, such as 1-N[t]/K[t].
+
+#Chapter 3 problem
+#3.1 
+#a) rd of an annual plant that has a maximum growth rate of Nt+1/Nt=2 at very, very small population sizes
+rd = 1
+#b)calculate alpha
+alpha = 1/100
+#c)calculate logisitc growth equation
+dlogistic <- function(alpha,rd,N0,t) { 
+  N = c(N0, numeric(t))
+  for(i in 1:t) {
+    N[i+1] = N[i] + rd * N[i] * (1 - alpha * N[i])
+  }
+  return(N)
+}
+#d) graph for 10 years
+dlogis = dlogistic(alpha, rd, 1, 10)
+plot(xlab="years",ylab = "growth", x = 0:10,dlogis)
+
+#3.2
+#a)find doubling time for 30 minutes for e.coli
+r= 60*(log(2)/30)
+#b)calculate per captia density 
+alpha = 1/107
+#c)graph 50 hour dynamics 
+clogisitc function 
+0
+#3.3
+#a)
+thetalogistic <- function(times, y, parms) {
+  n = y[1]
+  with(as.list(parms), {
+    dN.dt = r * n * (1 - (alpha * n)^theta)
+    return(list(c(dN.dt)))
+  })
+}
+
+can put theta logistic and clogistic on top of each other, have different dynamics with
+the same r
+
+
+#b)show that theta=1
+prms = c(r = r, alpha = alpha)
+init.N = c(1000)
+t.s = seq(0.1,50, by = 1)
+out = ode(y = init.N, times = t.s, clogistic, parms = prms)
+plot(out[, 1], out[, 2], type = "l", xlab = "Time", ylab = "N")
+parms = c(r=r,)
+
+r <- 0.75 
+alpha <- 0.01 
+theta <- c(0.5, 1, 2)
+N <- 0:110
+theta.out <- sapply(theta, function(th) {
+       1 - (alpha * N)^th
+   })
+ matplot(N, theta.out, ylab="theta",type = "l", col = 1)
+ abline(h = 0)
+ legend("bottomleft", legend = paste("theta =", c(2, 1, 0.5)), lty = 3:1)
+
+#3.5
+#a)discrete version of the logistic growth model
+ Kstart = 100
+ time = 1:20
+ K = numeric(20)
+ 
+ for(i in 1:20) {
+   K[i] = Kstart + rnorm(1, m=0, sd=5)
+ }
+ plot(time, K)
+ 
+ dlogistic <- function(K,rd,N0,t) { 
+   N = c(N0, numeric(t))
+   for(i in 1:t) {
+     N[i+1] = N[i] + rd * N[i] * (1 - (1/K[i]) * N[i])
+   }
+   return(N)
+ }
+ 
+ d = dlogistic(K, rd, 1, 20)
+ plot(ylab="growth", xlab="years",0:20,d)
+
+ #b)
+ rd = 1
+ Nsim = 100
+ N_mean = numeric(Nsim)
+ S_D = numeric(Nsim)
+ for (j in 1:Nsim){
+   stdev = sample(seq(0.1,15,0.5),1)
+   S_D[j] = stdev
+   Kstart = 100
+   time = 1:20
+   K = numeric(20)
+   
+   for(i in 1:20) {
+     K[i] = Kstart + rnorm(1, m=0, sd=stdev)
+   }
+   N_mean[j] = mean(dlogistic(K, rd, 1, 20))
+ }
+ 
+ plot(xlab="standard deviation",ylab="Mean",S_D, N_mean)
+
+ #c)
+ 
+
+
+
+
+
+
+
+
+
+
